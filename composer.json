@@ -1,0 +1,37 @@
+{
+    "name": "crocos/navy",
+    "description": "Navy is a GitHub webhook event handling framework",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Daichi Kamemoto",
+            "email": "yudoufu@crocos.co.jp"
+        },
+        {
+            "name": "Katsuhiro OGAWA",
+            "email": "ogawa@crocos.co.jp"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/crocos/navy-plugin-deploy"
+        }
+    ],
+    "require": {
+        "psr/log": "*",
+        "symfony/dependency-injection": "*",
+        "symfony/config": "*",
+        "monolog/monolog": "*"
+    },
+    "require-dev": {
+        "crocos/navy-plugin-deploy": "dev-master",
+        "phake/phake": "dev-master",
+        "phpunit/phpunit": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Navy\\": "src/"
+        }
+    }
+}

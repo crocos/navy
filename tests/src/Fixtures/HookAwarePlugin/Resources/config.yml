@@ -1,0 +1,6 @@
+services:
+  test_hook_aware.hook.foo:
+    class: Navy\Fixtures\HookAwarePlugin\Hook\FooHook
+
+  test_hook_aware.hook.bar:
+    class: Navy\Fixtures\HookAwarePlugin\Hook\BarHook

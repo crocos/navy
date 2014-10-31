@@ -1,0 +1,51 @@
+services:
+  hook_handler:
+    class: Navy\Hook\HookHandler
+    arguments:
+      - @hooks_provider
+      - @hook_event_factory
+
+  hooks_provider:
+    class: Navy\Hook\KernelHooksProvider
+    arguments:
+      - @kernel
+
+  hook_event_factory:
+    class: Navy\Hook\EventFactory
+
+
+  logger:
+    class: Monolog\Logger
+    arguments: [ %logger.name% ]
+    calls:
+      - [ pushHandler, [ @file.handler ] ]
+      - [ pushHandler, [ @hipchat.handler ] ]
+  file.formatter:
+    class: Monolog\Formatter\LineFormatter
+    arguments:
+      - null
+      - null
+      - true
+  file.handler:
+    class: Monolog\Handler\StreamHandler
+    arguments:
+      - %logger.file.path%
+      - "info"
+    calls:
+      - [ setFormatter, [ @file.formatter ]]
+  hipchat.formatter:
+    class: Monolog\Formatter\LineFormatter
+    arguments:
+      - "%%message%%"
+      - null
+      - true
+  hipchat.handler:
+    class: Monolog\Handler\HipChatHandler
+    arguments:
+      - %logger.hipchat.token%
+      - %logger.hipchat.channel%
+      - %logger.hipchat.name%
+      - %logger.hipchat.notify%
+    calls:
+      - [ setLevel, [ "notice" ] ]
+      - [ setFormatter, [ @hipchat.formatter ] ]

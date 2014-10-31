@@ -1,0 +1,4 @@
+/vendor/
+/config/parameters.yml
+composer.lock
+composer.phar

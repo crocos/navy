@@ -1,0 +1,23 @@
+# Cli commands
+release-open:
+  - 'git daily release open -y'
+release-close:
+  - 'git daily release close'
+release-list:
+  - 'git daily release list'
+pr-merge-log(count):
+  - 'git log --merges --parents -n {count} --pretty="%P %s" | fgrep "Merge pull request"'
+deploy(stage):
+  - '{sudo} cap {stage} deploy:setup'
+  - '{sudo} cap {stage} deploy:check'
+  - '{sudo} cap {stage} deploy'
+
+# Registered commands
+anchor: @release.command.anchor
+sail: @release.command.sail
+watch: @release.command.watch
+
+# Aliases
+staging: deploy(staging)
+production: deploy(production)
+check: anchor
