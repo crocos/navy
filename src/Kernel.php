@@ -4,34 +4,45 @@ namespace Navy;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
+use Symfony\Component\Yaml\Parser as YamlParser;
 use Navy\Plugin\PluginInterface;
 use RuntimeException;
 
 class Kernel
 {
+    const VERSION = '0.2.0';
+
     protected $configDir;
     protected $container;
-    protected $plugins = [];
-    protected $hooks = [];
+    protected $plugins;
 
     public function __construct($configDir = null)
     {
         $this->configDir = $configDir ?: dirname(__DIR__) . '/config';
-
-        $this->container = new ContainerBuilder();
-        $this->container->set('kernel', $this);
     }
 
     public function bootstrap()
     {
-        $this->loadConfig(__DIR__ . '/Resources/config.yml');
-        $this->loadConfig($this->getConfigDir() . '/parameters.yml');
+        $parameters = new ParameterBag();
+        $container = new ContainerBuilder($parameters);
 
-        $this->loadPlugins();
+        $container->set('kernel', $this);
+        $parameters->set('kernel.version', self::VERSION);
 
-        $this->container->compile();
+        $config = (new YamlParser())->parse(file_get_contents($this->getConfigDir().'/navy.yml'));
 
-        return $this;
+        $plugins = $this->loadPlugins($config, $parameters, $container);
+
+        $container->compile();
+
+        $this->container = $container;
+        $this->plugins = $plugins;
+    }
+
+    public function getConfigDir()
+    {
+        return $this->configDir;
     }
 
     public function getContainer()
@@ -44,73 +55,29 @@ class Kernel
         return $this->plugins;
     }
 
-    public function getHooks()
+    protected function loadPlugins(array $config, ParameterBag $parameters, ContainerBuilder $container)
     {
-        return $this->hooks;
-    }
-
-    protected function getConfigDir()
-    {
-        return $this->configDir;
-    }
-
-    protected function loadConfig($path)
-    {
-        // TODO: テストしづらい状態になってるので、ここは整理する. Configクラスを切ってもいいかも
-        $pathinfo = pathinfo($path);
-        if (in_array($pathinfo['extension'], ['yml', 'yaml'], true)) {
-            $loaderClass = Loader\YamlFileLoader::class;
-        } else {
-            $loaderClass = Loader\PhpFileLoader::class;
+        $plugins = [new NavyPlugin()];
+        if (isset($config['navy']['plugins'])) {
+            foreach ($config['navy']['plugins'] as $class) {
+                $plugins[] = new $class();
+            }
         }
 
-        (new $loaderClass($this->container, new FileLocator($pathinfo['dirname'])))->load($pathinfo['basename']);
-    }
+        foreach ($plugins as $plugin) {
+            $pluginConfig = isset($config[$plugin->getName()]) ? $config[$plugin->getName()] : [];
+            $plugin->loadConfig($parameters, $pluginConfig);
+        }
 
-    protected function loadPlugins()
-    {
+        foreach ($plugins as $plugin) {
+            $plugin->loadContainer($container);
+        }
+
         $loadedPlugins = [];
-
-        $pluginConfig = $this->container->getParameter('navy')['plugins'];
-        foreach ($pluginConfig as $pluginClass) {
-            if (!class_exists($pluginClass)) {
-                throw new RuntimeException(sprintf('Plugin "%s" not found', $pluginClass));
-            }
-
-            $plugin = new $pluginClass($this->container);
-            if (! ($plugin instanceof PluginInterface)) {
-                throw new RuntimeException(sprintf('Plugin "%s" must be implemented "%s"', $pluginClass, PluginInterface::class));
-            }
-
-            $name = $plugin->getName();
-            if (isset($loadedPlugins[$name])) {
-                throw new RuntimeException(sprintf('Cannot load plugin "%s" because plugin name "%s" was duplicated', $pluginClass, $name));
-            }
-
-            $this->loadConfig($plugin->getConfig()); // plugin config
-            if (file_exists($this->getConfigDir() . "/plugins/$name.yml")) {
-                $this->loadConfig($this->getConfigDir() . "/plugins/$name.yml"); // user config for plugin
-            }
-
-            $loadedPlugins[$name] = $plugin;
+        foreach ($plugins as $plugin) {
+            $loadedPlugins[$plugin->getName()] = $plugin;
         }
 
-        // load hooks
-        $loadedHooks = [];
-        foreach ($loadedPlugins as $plugin) {
-            $hooks = $plugin->getHooks();
-            foreach ($hooks as $hookId) {
-                $hook = $this->container->get($hookId);
-                $hook->getEvent();
-                if (!isset($loadedHooks[$hook->getEvent()])) {
-                    $loadedHooks[$hook->getEvent()] = [];
-                }
-
-                $loadedHooks[$hook->getEvent()][] = $hook;
-            }
-        }
-
-        $this->plugins = $loadedPlugins;
-        $this->hooks   = $loadedHooks;
+        return $loadedPlugins;
     }
 }

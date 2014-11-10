@@ -1,0 +1,19 @@
+navy:
+  plugins:
+    - Navy\Fixtures\HookAwarePlugin\HookAwarePlugin
+    - Navy\Fixtures\EmptyPlugin\EmptyPlugin
+  vars:
+    tmpdir: /var/tmp/navy
+    logdir: /var/log/navy
+  notifier: []
+  logger:
+    -
+      type: fingers_crossed
+      action_level: error
+      handler:
+        type: stream
+        stream: %navy.logdir%/navy.log
+        level: debug
+
+hookaware:
+  foo: bar

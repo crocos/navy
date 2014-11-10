@@ -2,6 +2,10 @@
 namespace Navy\Plugin;
 
 use ReflectionObject;
+use Symfony\Component\Config\FileLocator;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 abstract class AbstractPlugin implements PluginInterface
 {
@@ -17,12 +21,26 @@ abstract class AbstractPlugin implements PluginInterface
         return $this->name;
     }
 
-    public function getConfig()
+    public function loadConfig(ParameterBagInterface $parameters, array $config)
     {
-        return dirname((new ReflectionObject($this))->getFileName()) . '/Resources/config.yml';
+    }
+
+    public function loadContainer(ContainerBuilder $container)
+    {
+        $locator = new FileLocator(dirname((new ReflectionObject($this))->getFilename()).'/Resources');
+
+        if (is_file($locator->locate('services.yml'))) {
+            $loader = new YamlFileLoader($container, $locator);
+            $loader->load('services.yml');
+        }
     }
 
     public function getHooks()
+    {
+        return [];
+    }
+
+    public function getNotifiers()
     {
         return [];
     }

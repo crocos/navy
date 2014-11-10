@@ -8,13 +8,31 @@ use Navy\Kernel;
  */
 class KernelHooksProvider implements HooksProviderInterface
 {
+    protected $kernel;
+    protected $container;
+
     public function __construct(Kernel $kernel)
     {
         $this->kernel = $kernel;
+        $this->container = $kernel->getContainer();
     }
 
     public function getHooks()
     {
-        return $this->kernel->getHooks();
+        $hooks = [];
+
+        foreach ($this->kernel->getPlugins() as $plugin) {
+            foreach ($plugin->getHooks() as $hookId) {
+                $hook = $this->container->get($hookId);
+
+                if (!isset($hooks[$hook->getEvent()])) {
+                    $hooks[$hook->getEvent()] = [];
+                }
+
+                $hooks[$hook->getEvent()][] = $hook;
+            }
+        }
+
+        return $hooks;
     }
 }
