@@ -1,0 +1,48 @@
+services:
+  # hook
+  hook_handler:
+    class: Navy\Hook\HookHandler
+    arguments:
+      - @hooks_provider
+      - @hook_event_factory
+
+  hooks_provider:
+    class: Navy\Hook\KernelHooksProvider
+    arguments:
+      - @kernel
+
+  hook_event_factory:
+    class: Navy\Hook\EventFactory
+
+  # logger
+  logger:
+    class: Psr\Log\LoggerInterface
+    factory_service: logger_provider
+    factory_method: get
+
+  logger_provider:
+    class: Navy\LoggerProvider
+    arguments:
+      - %navy.logger.config%
+
+  # notifier
+  notifier:
+    class: Navy\Notifier\NotifierInterface
+    factory_service: notifier_provider
+    factory_method: get
+
+  notifier_provider:
+    class: Navy\Notifier\NotifierProvider
+    arguments:
+      - @notifier_adapter_resolvers_provider
+      - %navy.notifier.config%
+
+  notifier_adapter_resolvers_provider:
+    class: Navy\Notifier\KernelAdapterResolversProvider
+    arguments:
+      - @kernel
+
+  notifier_logger_adapter_resolver:
+    class: Navy\Notifier\LoggerAdapterResolver
+    arguments:
+      - @logger

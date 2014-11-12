@@ -1,0 +1,56 @@
+navy:
+  plugins:
+  vars:
+    tmpdir: /var/tmp/navy
+    logdir: /var/log/navy
+    deploydir: /var/deploy
+  logger:
+    - type: fingers_crossed
+      action_level: error
+      handler:
+        type: stream
+        stream: %navy.logdir%/navy.log
+        level: debug
+  notifier:
+    - type: logger
+      level: notice
+
+deploy:
+  release:
+    repository:
+      navy/sample-repo:
+        develop:
+          workdir: %navy.deploydir%/navy/sample-repo
+    flow:
+      "shipit":
+        keyword: "shipit"
+        process:
+          - staging
+          - production
+      "+1":
+        keyword: "+1"
+        process:
+          - staging
+          - check
+          - production
+          - check
+    queue:
+      file:
+        dir: %navy.tmpdir%/queue
+    command:
+      lockfile: %navy.tmpdir%/navy.lock
+      env:
+        sudo: "sudo -u navy"
+
+  releaselog:
+    repository:
+      navy/sample-repo:
+        develop: ~
+    logger:
+      file:
+        dir: %navy.tmpdir%/releaselog
+        prefix: release-
+        permission: 0777
+    notifier:
+      topics: []
+      labels: []
