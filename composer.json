@@ -1,5 +1,5 @@
 {
-    "name": "crocos/navy",
+    "name": "navy/navy",
     "description": "Navy is a GitHub webhook event handling framework",
     "license": "MIT",
     "authors": [
@@ -16,6 +16,10 @@
         {
             "type": "vcs",
             "url": "https://github.com/crocos/navy-plugin-deploy"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/navy/plugin-slack"
         }
     ],
     "require": {
@@ -26,6 +30,7 @@
     },
     "require-dev": {
         "crocos/navy-plugin-deploy": "dev-master",
+        "navy/plugin-slack": "dev-master",
         "phake/phake": "dev-master",
         "phpunit/phpunit": "*"
     },

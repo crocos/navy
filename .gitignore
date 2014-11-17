@@ -1,5 +1,4 @@
-/vendor/
-/config/parameters.yml
 /config/navy.yml
+/vendor/
 composer.lock
 composer.phar
