@@ -5,9 +5,14 @@ class Notifier implements NotifierInterface
 {
     protected $adapters = [];
 
-    public function addAdapter(AdapterInterface $adapter)
+    public function addAdapter($type, AdapterInterface $adapter)
     {
-        $this->adapters[] = $adapter;
+        $this->adapters[$type] = $adapter;
+    }
+
+    public function getAdapters()
+    {
+        return $this->adapters;
     }
 
     public function notify($message)

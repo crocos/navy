@@ -5,6 +5,7 @@ services:
     arguments:
       - @hooks_provider
       - @hook_event_factory
+      - @logger
 
   hooks_provider:
     class: Navy\Hook\KernelHooksProvider

@@ -11,6 +11,8 @@ deploy(stage):
   - '{sudo} cap {stage} deploy:setup'
   - '{sudo} cap {stage} deploy:check'
   - '{sudo} cap {stage} deploy'
+username(username):
+  - 'echo -n {username}'
 
 # Registered commands
 anchor: @release.command.anchor

@@ -22,7 +22,7 @@ class NotifierProvider
             }
 
             $adapter = $this->resolvers[$type]->resolveAdapter($notifierConfig);
-            $notifier->addAdapter($adapter);
+            $notifier->addAdapter($type, $adapter);
         }
 
         return $notifier;

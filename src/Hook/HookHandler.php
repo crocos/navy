@@ -4,16 +4,19 @@ namespace Navy\Hook;
 use Exception;
 use Navy\Request;
 use Navy\Response;
+use Psr\Log\LoggerInterface;
 
 class HookHandler
 {
     protected $hooks;
     protected $eventFactory;
+    protected $logger;
 
-    public function __construct(HooksProviderInterface $provider, EventFactoryInterface $eventFactory)
+    public function __construct(HooksProviderInterface $provider, EventFactoryInterface $eventFactory, LoggerInterface $logger)
     {
         $this->hooks = $provider->getHooks();
         $this->eventFactory = $eventFactory;
+        $this->logger = $logger;
     }
 
     public function handle(Request $request)
@@ -39,9 +42,14 @@ class HookHandler
 
             $result['result'] = false;
             $result['error'] = 'An Error Occured.';
+
+            $this->logger->critical(sprintf('Uncaught exception:: [%s] %s', get_class($e), $e->getMessage()));
         }
 
-        $response->setContent(json_encode($result));
+        $content = json_encode($result);
+        $response->setContent($content);
+
+        $this->logger->info(sprintf('Response content "%s"', $content));
 
         return $response;
     }
